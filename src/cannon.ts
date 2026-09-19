@@ -62,6 +62,10 @@ const MIN_WRITE_INTERVAL_MS = 80;
 const WRITE_RETRY_DELAY_MS = 200;
 const MAX_WRITE_RETRIES = 2;
 const RECONNECT_BACKOFF_MS = 500;
+// A dead read thread does not mean the device is gone (macOS hidapi's
+// pthread_cond_timedwait can return EINTR when Node handles a signal such as
+// SIGWINCH). When the USB device is still enumerated, recovery can be instant.
+const RECONNECT_READ_HICCUP_MS = 120;
 
 export class AirCannon extends EventEmitter {
   private device: HID.HID | null = null;
@@ -132,14 +136,26 @@ export class AirCannon extends EventEmitter {
     const fatal = /disconnected|offline|not ready|disconnect|could not read|error waiting for more data/i.test(message);
     if (!fatal) return;
 
+    // If the read thread just died ("could not read...") the device is almost
+    // certainly still present. Stop the motors before closing the handle so a
+    // movement in progress doesn't keep driving into a limit during recovery.
+    if (/could not read|error waiting for more data/i.test(message)) {
+      this.activeMovementId = null;
+      try {
+        this.device?.write([0x00, 0, 0, 0, 0, 0, 0, 0, 0]); // stop
+      } catch {
+        // ignore; the handle is about to be torn down
+      }
+    }
+
     this.reconnecting = true;
     this.teardownDevice();
-    this.scheduleReconnect();
+    this.scheduleReconnect(/could not read|error waiting for more data/i.test(message) ? RECONNECT_READ_HICCUP_MS : RECONNECT_BACKOFF_MS);
   }
 
-  private scheduleReconnect(): void {
+  private scheduleReconnect(delayMs = RECONNECT_BACKOFF_MS): void {
     if (this.closed || this.reconnectTimer !== null) return;
-    this.reconnectTimer = setTimeout(() => void this.reconnect(), RECONNECT_BACKOFF_MS);
+    this.reconnectTimer = setTimeout(() => void this.reconnect(), delayMs);
   }
 
   private async reconnect(): Promise<void> {

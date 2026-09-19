@@ -141,6 +141,10 @@ function runInteractive(cannon: AirCannon): void {
   });
 
   cannon.on("error", (error: Error) => {
+    if (/could not read from HID device/i.test(error.message)) {
+      console.log("HID read hiccup; reconnecting...");
+      return;
+    }
     console.error(`Launcher error: ${error.message}`);
   });
 
