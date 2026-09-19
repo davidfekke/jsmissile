@@ -1,0 +1,36 @@
+{
+  "name": "jsmissile",
+  "version": "1.0.0",
+  "description": "Command line app to control the Dream Cheeky USB missile launcher (0x1941:0x8021)",
+  "type": "module",
+  "main": "dist/cannon.js",
+  "bin": {
+    "jsmissile": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/cli.ts",
+    "cli": "tsx src/cli.ts",
+    "test": "node --test"
+  },
+  "keywords": [
+    "usb",
+    "hid",
+    "missile-launcher",
+    "dream-cheeky"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-hid": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
