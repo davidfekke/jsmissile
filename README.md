@@ -1,8 +1,12 @@
-# jsmissile
+# JSMissile
 
 A command-line app for controlling the **Dream Cheeky USB Missile Launcher** (Vendor ID `0x1941`, Product ID `0x8021`) from Node.js.
 
 The launcher is a USB HID device: this app opens the device, sends 8-byte output reports to drive the motors, and reads the status reports the launcher sends back to detect the end-of-travel limits and the firing-cycle state. It is a TypeScript port of the author's Swift class for the same hardware.
+
+## Software Freedom Day
+
+This project was inspired by the Jacksonville Software Freedom day.
 
 ## Requirements
 
