@@ -121,13 +121,15 @@ export class AirCannon extends EventEmitter {
 
   // A write/read failure does not necessarily mean the launcher is gone: transient
   // control-pipe errors are handled by spacing writes, but once the read thread
-  // dies ("device disconnected") this device object is permanently unusable. In
-  // that case tear it down and re-open so a reset/replugged launcher keeps working.
+  // dies (node-hid stops reading permanently after a single hid_read_timeout
+  // error, and writes then fail with "Device is disconnected") this device object
+  // is unusable no matter what. In that case tear down and re-open so a reset or
+  // replugged launcher keeps working; re-opening also restarts the read thread.
   private handleDeviceError(error: Error): void {
     if (this.closed || this.reconnecting) return;
 
     const message = error.message;
-    const fatal = /disconnected|offline|not ready|disconnect/i.test(message);
+    const fatal = /disconnected|offline|not ready|disconnect|could not read|error waiting for more data/i.test(message);
     if (!fatal) return;
 
     this.reconnecting = true;
