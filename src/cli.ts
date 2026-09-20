@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import readline from "node:readline";
 import HID from "node-hid";
-import { AirCannon, CannonDirection, PRODUCT_ID, VENDOR_ID } from "./cannon.js";
+import { AirCannon, CannonDirection, PRODUCT_ID, VENDOR_ID, createAirCannon } from "./cannon.js";
 
 const USAGE = `Usage:
   jsmissile                     Interactive keyboard control
@@ -212,7 +212,7 @@ async function main(): Promise<void> {
 
   let cannon: AirCannon;
   try {
-    cannon = new AirCannon();
+    cannon = createAirCannon();
     if (!cannon.isConnected) {
       console.error("Try: jsmissile list");
       process.exit(1);
